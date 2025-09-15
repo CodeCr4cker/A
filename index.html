@@ -1,262 +1,287 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>special one💕</title>
-
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-  }
-  
-  html,
-  body {
-    height: 100%;
-  
-    touch-action: none; 
-  }
-  
-  body {
-    overflow: hidden;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    background: #111;
-    -webkit-perspective: 1000px;
-            perspective: 1000px;
-    -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
-  }
-  
-  #drag-container, #spin-container {
-    position: relative;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    margin: auto;
-    -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
-    -webkit-transform: rotateX(-10deg);
-            transform: rotateX(-10deg);
-  }
-  
-  #drag-container img, #drag-container video {
-    -webkit-transform-style: preserve-3d;
-            transform-style: preserve-3d;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    line-height: 200px;
-    font-size: 50px;
-    text-align: center;
-    -webkit-box-shadow: 0 0 8px #fff;
-            box-shadow: 0 0 8px #fff;
-    -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, #0005);
-  }
-  
-  #drag-container img:hover, #drag-container video:hover {
-    -webkit-box-shadow: 0 0 15px #fffd;
-            box-shadow: 0 0 15px #fffd;
-    -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, #0007);
-  }
-  
-  #drag-container p {
-    font-family: Serif;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    -webkit-transform: translate(-50%,-50%) rotateX(90deg);
-            transform: translate(-50%,-50%) rotateX(90deg);
-    color: #fff;
-  }
-  
-  #ground {
-    width: 900px;
-    height: 900px;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    -webkit-transform: translate(-50%,-50%) rotateX(90deg);
-            transform: translate(-50%,-50%) rotateX(90deg);
-    background: -webkit-radial-gradient(center center, farthest-side , #9993, transparent);
-  }
-  
-  #music-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  
-  @-webkit-keyframes spin {
-    from{
-      -webkit-transform: rotateY(0deg);
-              transform: rotateY(0deg);
-    } to{
-      -webkit-transform: rotateY(360deg);
-              transform: rotateY(360deg);
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-  }
-  
-  @keyframes spin {
-    from{
-      -webkit-transform: rotateY(0deg);
-              transform: rotateY(0deg);
-    } to{
-      -webkit-transform: rotateY(360deg);
-              transform: rotateY(360deg);
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
     }
-  }
-  @-webkit-keyframes spinRevert {
-    from{
-      -webkit-transform: rotateY(360deg);
-              transform: rotateY(360deg);
-    } to{
-      -webkit-transform: rotateY(0deg);
-              transform: rotateY(0deg);
+    
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111;
+      perspective: 1000px;
+      transform-style: preserve-3d;
     }
-  }
-  @keyframes spinRevert {
-    from{
-      -webkit-transform: rotateY(360deg);
-              transform: rotateY(360deg);
-    } to{
-      -webkit-transform: rotateY(0deg);
-              transform: rotateY(0deg);
+    
+    #drag-container, #spin-container {
+      position: relative;
+      display: flex;
+      margin: auto;
+      transform-style: preserve-3d;
+      transform: rotateX(-10deg);
     }
+    
+    #drag-container img {
+      transform-style: preserve-3d;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      line-height: 200px;
+      font-size: 50px;
+      text-align: center;
+      box-shadow: 0 0 8px #fff;
+      -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, #0005);
+      cursor: grab;
+    }
+    
+    #drag-container img:hover {
+      box-shadow: 0 0 15px #fffd;
+      -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, #0007);
+    }
+    
+    #drag-container p {
+      font-family: serif;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotateX(90deg);
+      color: #fff;
+      font-size: 20px;
+      white-space: nowrap;
+      user-select: none;
+    }
+    
+    #ground {
+      width: 900px;
+      height: 900px;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotateX(90deg);
+      background: radial-gradient(center center, farthest-side, #9993, transparent);
+    }
+    
+    #music-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+    
+    #music-container audio {
+      width: 300px;
+      height: 40px;
+    }
+    
+    @keyframes spin {
+      from {
+        transform: rotateY(0deg);
       }
-</style>
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+    
+    @keyframes spinRevert {
+      from {
+        transform: rotateY(360deg);
+      }
+      to {
+        transform: rotateY(0deg);
+      }
+    }
+    
+    /* Loading animation */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
-
-<div id="drag-container">
-  <div id="spin-container">
-
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
-    <img src="https://raw.githubusercontent.com/CodeCr4cker/divyanshu/main/Images/logo.png" alt="">
- 
-    <p>I always thought love was a static class until you made an instance of it.</p>
+  <div class="loading" id="loading">Loading images...</div>
+  
+  <div id="drag-container">
+    <div id="spin-container">
+      <!-- Using placeholder images that will load properly -->
+      <img src="https://picsum.photos/300/400?random=1" alt="Image 1" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23ff69b4%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 1%3C/text%3E%3C/svg%3E'">
+      <img src="https://picsum.photos/300/400?random=2" alt="Image 2" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23ff1493%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 2%3C/text%3E%3C/svg%3E'">
+      <img src="https://picsum.photos/300/400?random=3" alt="Image 3" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23c71585%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 3%3C/text%3E%3C/svg%3E'">
+      <img src="https://picsum.photos/300/400?random=4" alt="Image 4" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23db7093%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 4%3C/text%3E%3C/svg%3E'">
+      <img src="https://picsum.photos/300/400?random=5" alt="Image 5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23ff69b4%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 5%3C/text%3E%3C/svg%3E'">
+      <img src="https://picsum.photos/300/400?random=6" alt="Image 6" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23ffb6c1%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22%3EImage 6%3C/text%3E%3C/svg%3E'">
+      
+      <p>I always thought love was a static class until you made an instance of it 💕</p>
+    </div>
+    <div id="ground"></div>
   </div>
-  <div id="ground"></div>
-</div>
 
-<div id="music-container"></div>
-<style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+  <div id="music-container">
+    <audio controls loop>
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+  </div>
 
   <script>
-    var radius = 240; 
-var autoRotate = true; 
-var rotateSpeed = -60; 
-var imgWidth = 120; 
-var imgHeight = 170; 
+    // Configuration
+    const config = {
+      radius: 240,
+      autoRotate: true,
+      rotateSpeed: -60,
+      imgWidth: 120,
+      imgHeight: 170
+    };
 
-var bgMusicURL = 'https://user-images.githubusercontent.com/151072490/283747943-7b08424b-8647-4bdc-996c-965063dbb5e3.mp4';
-var bgMusicControls = true; 
+    // Wait for DOM to load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Hide loading text after a delay
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.display = 'none';
+        }
+        init();
+      }, 1000);
+    });
 
-setTimeout(init, 1000);
+    const odrag = document.getElementById('drag-container');
+    const ospin = document.getElementById('spin-container');
+    const ground = document.getElementById('ground');
 
-var odrag = document.getElementById('drag-container');
-var ospin = document.getElementById('spin-container');
-var aImg = ospin.getElementsByTagName('img');
-var aVid = ospin.getElementsByTagName('video');
-var aEle = [...aImg, ...aVid];
+    // Set initial styles
+    ospin.style.width = config.imgWidth + "px";
+    ospin.style.height = config.imgHeight + "px";
+    ground.style.width = config.radius * 3 + "px";
+    ground.style.height = config.radius * 3 + "px";
 
+    function init(delayTime) {
+      const aImg = ospin.getElementsByTagName('img');
+      const aVid = ospin.getElementsByTagName('video');
+      const aEle = [...aImg, ...aVid];
 
-ospin.style.width = imgWidth + "px";
-ospin.style.height = imgHeight + "px";
+      for (let i = 0; i < aEle.length; i++) {
+        aEle[i].style.transform = `rotateY(${i * (360 / aEle.length)}deg) translateZ(${config.radius}px)`;
+        aEle[i].style.transition = "transform 1s";
+        aEle[i].style.transitionDelay = delayTime || `${(aEle.length - i) / 4}s`;
+      }
+    }
 
-var ground = document.getElementById('ground');
-ground.style.width = radius * 3 + "px";
-ground.style.height = radius * 3 + "px";
+    function applyTransform(obj) {
+      // Limit vertical rotation
+      if (tY > 180) tY = 180;
+      if (tY < 0) tY = 0;
+      
+      obj.style.transform = `rotateX(${-tY}deg) rotateY(${tX}deg)`;
+    }
 
-function init(delayTime) {
-  for (var i = 0; i < aEle.length; i++) {
-    aEle[i].style.transform = "rotateY(" + (i * (360 / aEle.length)) + "deg) translateZ(" + radius + "px)";
-    aEle[i].style.transition = "transform 1s";
-    aEle[i].style.transitionDelay = delayTime || (aEle.length - i) / 4 + "s";
-  }
-}
+    function playSpin(yes) {
+      ospin.style.animationPlayState = yes ? 'running' : 'paused';
+    }
 
-function applyTranform(obj) {
- 
-  if(tY > 180) tY = 180;
-  if(tY < 0) tY = 0;
+    // Variables for drag functionality
+    let sX, sY, nX, nY, desX = 0, desY = 0, tX = 0, tY = 10;
 
-  obj.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + (tX) + "deg)";
-}
+    // Auto-rotate setup
+    if (config.autoRotate) {
+      const animationName = config.rotateSpeed > 0 ? 'spin' : 'spinRevert';
+      ospin.style.animation = `${animationName} ${Math.abs(config.rotateSpeed)}s infinite linear`;
+    }
 
-function playSpin(yes) {
-  ospin.style.animationPlayState = (yes?'running':'paused');
-}
+    // Mouse/Touch drag functionality
+    let isDragging = false;
 
-var sX, sY, nX, nY, desX = 0,
-    desY = 0,
-    tX = 0,
-    tY = 10;
+    function handleStart(e) {
+      isDragging = true;
+      clearInterval(odrag.timer);
+      
+      const point = e.touches ? e.touches[0] : e;
+      sX = point.clientX;
+      sY = point.clientY;
+    }
 
-if (autoRotate) {
-  var animationName = (rotateSpeed > 0 ? 'spin' : 'spinRevert');
-  ospin.style.animation = `${animationName} ${Math.abs(rotateSpeed)}s infinite linear`;
-}
-
-if (bgMusicURL) {
-  document.getElementById('music-container').innerHTML += `
-<audio src="${bgMusicURL}" ${bgMusicControls? 'controls': ''} autoplay loop>    
-<p>If you are reading this, it is because your browser does not support the audio element.</p>
-</audio>
-`;
-}
-
-document.onpointerdown = function (e) {
-  clearInterval(odrag.timer);
-  e = e || window.event;
-  var sX = e.clientX,
-      sY = e.clientY;
-
-  this.onpointermove = function (e) {
-    e = e || window.event;
-    var nX = e.clientX,
-        nY = e.clientY;
-    desX = nX - sX;
-    desY = nY - sY;
-    tX += desX * 0.1;
-    tY += desY * 0.1;
-    applyTranform(odrag);
-    sX = nX;
-    sY = nY;
-  };
-
-  this.onpointerup = function (e) {
-    odrag.timer = setInterval(function () {
-      desX *= 0.95;
-      desY *= 0.95;
+    function handleMove(e) {
+      if (!isDragging) return;
+      
+      e.preventDefault();
+      const point = e.touches ? e.touches[0] : e;
+      nX = point.clientX;
+      nY = point.clientY;
+      
+      desX = nX - sX;
+      desY = nY - sY;
       tX += desX * 0.1;
       tY += desY * 0.1;
-      applyTranform(odrag);
-      playSpin(false);
-      if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
-        clearInterval(odrag.timer);
-        playSpin(true);
-      }
-    }, 17);
-    this.onpointermove = this.onpointerup = null;
-  };
+      
+      applyTransform(odrag);
+      sX = nX;
+      sY = nY;
+    }
 
-  return false;
-};
+    function handleEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      odrag.timer = setInterval(function() {
+        desX *= 0.95;
+        desY *= 0.95;
+        tX += desX * 0.1;
+        tY += desY * 0.1;
+        applyTransform(odrag);
+        playSpin(false);
+        
+        if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
+          clearInterval(odrag.timer);
+          playSpin(true);
+        }
+      }, 17);
+    }
 
-document.onmousewheel = function(e) {
-  e = e || window.event;
-  var d = e.wheelDelta / 20 || -e.detail;
-  radius += d;
-  init(1);
-};
+    // Mouse events
+    document.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('mouseleave', handleEnd);
+
+    // Touch events
+    document.addEventListener('touchstart', handleStart, { passive: false });
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
+
+    // Mouse wheel zoom
+    document.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      const d = e.deltaY > 0 ? -10 : 10;
+      config.radius += d;
+      
+      // Limit radius
+      if (config.radius < 100) config.radius = 100;
+      if (config.radius > 500) config.radius = 500;
+      
+      init(1);
+    }, { passive: false });
   </script>
-
 </body>
+</html>
