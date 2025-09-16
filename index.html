@@ -1,628 +1,659 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Coderstar</title>
-  <style>
-    * { box-sizing: border-box; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farewell FlipBook - Enhanced Collage & Zoom</title>
+    <!-- Google Fonts Import -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Cute+Font|Poppins&display=swap"
+    />
+    <!-- Vue.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"></script>
 
-    .page-content {
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-      position: relative;
-      z-index: 3; /* Ensure content is above collage/video */
-      padding: 2em; /* Add padding to prevent content from touching edges */
-      display: flex;
-      flex-direction: column;
-      justify-content: center; /* Center content vertically if any */
-      align-items: center; /* Center content horizontally if any */
-      height: 100%; /* Take full height of the page */
-      width: 100%; /* Take full width of the page */
-    }
-    .page-content.animate-in {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    <style>
+      /* Base Styles */
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      display: flex;
-      min-height: 100dvh;
-      perspective: 1000px;
-      font-size: 1rem;
-      overflow: hidden;
-      color: hsl(180 68% 5%);
-      background-image: radial-gradient(circle farthest-corner at 50% 50%, hsl(189, 56%, 73%) 30%, hsl(150, 80%, 75%) 100%);
-    }
-
-    .book {
-      position: relative;
-      display: flex;
-      margin: auto;
-      width: 40cqmin;
-      height: 550px;
-      pointer-events: auto;
-      transform-style: preserve-3d;
-      transition: translate 1s;
-      translate: calc(min(var(--c), 1) * 50%) 0%;
-      rotate: 1 0 0 30deg;
-      counter-reset: page -1;
-    }
-
-    .neon-typing {
-      color: var(--neon-yellow);
-      text-shadow: var(--neon-shadow-yellow);
-    }
-
-    .page {
-      --thickness: 4;
-      flex: none;
-      display: flex;
-      width: 100%;
-      font-size: 1.5cqmin;
-      pointer-events: all;
-      user-select: none;
-      transform-style: preserve-3d;
-      transform-origin: left center;
-      transition:
-        transform 1s,
-        rotate 1s ease-in calc((min(var(--i), var(--c)) - max(var(--i), var(--c))) * 50ms);
-      translate: calc(var(--i) * -100%) 0px 0px;
-      transform: translateZ( calc((var(--c) - var(--i) - 0.5) * calc(var(--thickness) * .23cqmin)));
-      rotate: 0 1 0 calc(clamp(0, var(--c) - var(--i), 1) * -180deg);
-      box-shadow: 0em .5em 1em -.2em #00000020;
-      cursor: pointer; /* Indicate clickable pages */
-    }
-
-    .front,
-    .back {
-      position: relative;
-      flex: none;
-      width: 100%;
-      backface-visibility: hidden;
-      overflow: hidden;
-      background-color: #fff;
-      display: flex;
-      flex-flow: column wrap;
-      justify-content: space-between;
-      border: 1px solid #0002;
-    }
-
-    /* Video Container Styles */
-    .video-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1; /* Ensure video is behind content */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #000; /* Black background for video */
-    }
-
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Cover the area, cropping if necessary */
-    }
-
-    .front::after,
-    .back::after {
-      position: absolute;
-      bottom: 1em;
-      counter-increment: page;
-      content: counter(page) ".";
-      font-size: 0.8em;
-      z-index: 4; /* Ensure page number is above content and media */
-    }
-
-    .front::after { right: 1em; }
-    .back {
-      translate: -100% 0;
-      rotate: 0 1 0 180deg;
-    }
-    .back::after { left: 1em; }
-
-    .cover {
-      background: radial-gradient(circle farthest-corner at 80% 20%, hsl(150 80% 20% / .3) 0%, hsl(170 60% 10% / .1) 100%),
-      hsl(231, 32%, 29%) url("https://raw.githubusercontent.com/CodeCr4cker/book-flip/main/img/front.jpg") 50% / cover;
-      color: hsl(200 30% 98%);
-      pointer-events: auto;
-    }
-
-    .cover::after { content: ""; } /* No page number on cover */
-
-    h1 {
-      font-size: 1.8em;
-      margin: 0.5em 0;
-    }
-
-    h2 {
-      font-size: 1.3em;
-      margin: 0.4em 0;
-    }
-
-    p {
-      font-size: 0.95em;
-      margin: 0.4em 0;
-    }
-
-    @media (max-width: 768px) {
+      html,
       body {
-        font-size: 0.9rem;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+      }
+
+      body {
+        color: hsl(180 68% 5%);
+        font-family: "Poppins", sans-serif;
+        background-image: radial-gradient(
+          circle farthest-corner at 50% 50%,
+          hsl(189, 56%, 73%) 30%,
+          hsl(150, 80%, 75%) 100%
+        );
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        perspective: 1000px;
+        font-size: 1em;
+        line-height: 1.4;
+      }
+
+      *:before,
+      *:after {
+        content: "";
+        position: absolute;
+      }
+
+      /* Container for book and controls */
+      .flipbook-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        min-height: 0;
+      }
+
+      /* FlipBook Structure */
+      .book {
+        position: relative;
+        display: flex;
+        width: min(70vw, 80vh * 0.7); /* Responsive width based on viewport */
+        height: min(70vh, 70vw / 0.7); /* Maintain aspect ratio */
+        max-width: 800px;
+        max-height: 600px;
+        pointer-events: none;
+        transform-style: preserve-3d;
+        transition: translate 1s;
+        translate: calc(min(var(--c), 1) * 50%) 0%;
+        rotate: 1 0 0 30deg;
       }
 
       .page {
-        font-size: 1.2cqmin;
+        --thickness: 4;
+        flex: none;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        font-size: clamp(8px, 1.5vmin, 16px);
+        pointer-events: all;
+        user-select: none;
+        transform-style: preserve-3d;
+        transform-origin: left center;
+        transition: transform 1s,
+          rotate 1s ease-in
+            calc(
+              (min(var(--i), var(--c)) - max(var(--i), var(--c))) * 50ms
+            );
+        translate: calc(var(--i) * -100%) 0px 0px;
+        transform: translateZ(
+          calc(
+            (var(--c) - var(--i) - 0.5) * calc(var(--thickness) * 0.23vmin)
+          )
+        );
+        rotate: 0 1 0 calc(clamp(0, var(--c) - var(--i), 1) * -180deg);
+        box-shadow: 0em 0.5em 1em -0.2em #00000020;
       }
 
-      h1 {
-        font-size: 1.5em;
+      .front,
+      .back {
+        position: relative;
+        flex: none;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        overflow: hidden;
+        background-color: #fff;
+        translate: 0px;
+        display: flex;
+        flex-flow: column wrap;
+        justify-content: space-between;
+        padding: 1.5em;
+        border: 1px solid #0002;
       }
 
-      h2 {
-        font-size: 1.1em;
+      .back {
+        translate: -100% 0;
+        rotate: 0 1 0 180deg;
       }
 
-      p {
-        font-size: 0.85em;
-      }
+      /* FlipBook Customization */
       .book {
-        height: 200px;
-      }
-    }
-
-    /* Image Management Design from album.css */
-    .content {
-      display: grid;
-      grid-template-columns: 50% 50%;
-      grid-template-rows: 100px auto;
-      height: 100%;
-      position: absolute; /* Position absolutely to layer behind page-content */
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1; /* Ensure content is behind page-content */
-      background-color: #f1f0f0; /* Default page background */
-    }
-    .content__title {
-      grid-row: 1;
-      grid-column: 1/3;
-      font-size: 100px;
-      line-height: 0.8;
-      padding: 20px;
-      box-sizing: border-box;
-      color: #333; /* Ensure title color is visible */
-    }
-    .content__img1 {
-      grid-row: 2/4;
-      grid-column: 1/2;
-      display: flex;
-      align-items: center;
-      flex-flow: column;
-      box-sizing: border-box;
-    }
-    .content__img1 img {
-      margin: auto;
-      width: 90%;
-      border: 10px solid #fff;
-      box-sizing: border-box;
-      object-fit: cover; /* Ensure images cover their area */
-    }
-    .content__img2 {
-      grid-row: 3/4;
-      grid-column: 2/4;
-      display: flex;
-      align-items: center;
-      box-sizing: border-box;
-    }
-    .content__img2 img {
-      margin: auto;
-      width: 80%;
-      border: 10px solid #fff;
-      box-sizing: border-box;
-      object-fit: cover;
-    }
-    .content__img3 {
-      grid-row: 2;
-      grid-column: 2;
-      display: flex;
-      align-items: center;
-      box-sizing: border-box;
-    }
-    .content__img3 img {
-      margin: auto;
-      width: 60%;
-      border: 10px solid #fff;
-      box-sizing: border-box;
-      object-fit: cover;
-    }
-    .content__text {
-      width: 100%;
-      padding: 30px;
-      font-size: 30px;
-      box-sizing: border-box;
-      color: #333; /* Ensure text color is visible */
-    }
-  </style>
-</head>
-<body>
-  <div class="book">
-    <!-- Cover Page -->
-    <div class="page">
-      <div class="front cover">
-        <!-- No images on front cover -->
-      </div>
-      <div class="back">
-        <!-- No images on back of cover -->
-      </div>
-    </div>
-
-    <!-- Content Page 1 (Image Management Design) -->
-    <div class="page">
-      <div class="front">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="images/cat couple.jpg" alt="Cat Couple 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="images/cat couple2.jpg" alt="Cat Couple 2" /></div>
-          <div class="content__img3"><img src="images/cat couple3.jpg" alt="Cat Couple 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type1" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="images/cat cute.jpg" alt="Cat Cute 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="images/cat cute 2.jpg" alt="Cat Cute 2" /></div>
-          <div class="content__img3"><img src="images/cat cute 3.jpg" alt="Cat Cute 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type2" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 2 (Image Management Design) -->
-    <div class="page">
-      <div class="front">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="images/cat baby2.jpg" alt="Cat Baby 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="images/cat baby.jpg" alt="Cat Baby 2" /></div>
-          <div class="content__img3"><img src="images/cat baby3.jpg" alt="Cat Baby 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type3" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="images/cat sleep.jpg" alt="Cat Sleep 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="images/cat sleep2.jpg" alt="Cat Sleep 2" /></div>
-          <div class="content__img3"><img src="images/cat sleep 3.jpg" alt="Cat Sleep 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type4" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 3 (Image Management Design) -->
-    <div class="page">
-      <div class="front">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="images/CAT HERO1.jpg" alt="Cat Hero 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="images/cat hero2.jpg" alt="Cat Hero 2" /></div>
-          <div class="content__img3"><img src="images/cat hero3.jpg" alt="Cat Hero 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type5" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=More+1" alt="More Image 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="https://via.placeholder.com/250x350/FFA07A/FFFFFF?text=More+2" alt="More Image 2" /></div>
-          <div class="content__img3"><img src="https://via.placeholder.com/250x350/98FB98/FFFFFF?text=More+3" alt="More Image 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type6" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 4 (Image Management Design) -->
-    <div class="page">
-      <div class="front">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="https://via.placeholder.com/250x350/ADD8E6/FFFFFF?text=Extra+1" alt="Extra Image 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=Extra+2" alt="Extra Image 2" /></div>
-          <div class="content__img3"><img src="https://via.placeholder.com/250x350/FFA07A/FFFFFF?text=Extra+3" alt="Extra Image 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type7" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="content">
-          <div class="content__title"></div>
-          <div class="content__img1">
-            <img src="https://via.placeholder.com/250x350/98FB98/FFFFFF?text=Last+1" alt="Last Image 1" />
-            <div class="content__text"></div>
-          </div>
-          <div class="content__img2"><img src="https://via.placeholder.com/250x350/ADD8E6/FFFFFF?text=Last+2" alt="Last Image 2" /></div>
-          <div class="content__img3"><img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=Last+3" alt="Last Image 3" /></div>
-        </div>
-        <div class="page-content"><h2><span id="type8" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 5 (Video) -->
-    <div class="page">
-      <div class="front">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type9" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type10" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 6 (Video) -->
-    <div class="page">
-      <div class="front">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type11" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type12" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 7 (Video) -->
-    <div class="page">
-      <div class="front">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type13" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type14" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 8 (Video) -->
-    <div class="page">
-      <div class="front">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type15" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type16" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Content Page 9 (Video) -->
-    <div class="page">
-      <div class="front">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type17" class="neon-typing"></span></h2></div>
-      </div>
-      <div class="back">
-        <div class="video-container">
-          <video controls loop muted autoplay>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <div class="page-content"><h2><span id="type18" class="neon-typing"></span></h2></div>
-      </div>
-    </div>
-
-    <!-- Back Cover Page -->
-    <div class="page">
-      <div class="front">
-        <!-- No images on front of back cover -->
-      </div>
-      <div class="back cover">
-        <!-- No images on back cover -->
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let globalClicked = false;
-    let currentPageIndex = 0; // Track the currently visible page pair (0-indexed)
-    const totalContentPages = 9; // Number of pages with actual content (4 image pages + 5 video pages)
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const elBook = document.querySelector(".book");
-      flipBook(elBook);
-    });
-
-    function flipBook(elBook) {
-      elBook.style.setProperty("--c", 0);
-      const pages = elBook.querySelectorAll(".page");
-      pages.forEach((page, idx) => page.style.setProperty("--i", idx));
-
-      // Add click listener to the cover page to start the book
-      const coverPage = pages[0];
-      coverPage.addEventListener("click", () => {
-        if (globalClicked) return;
-        globalClicked = true;
-        elBook.style.setProperty("--c", 1); // Open to the first content page
-        currentPageIndex = 0;
-        // No typing sequence on initial open as there's no text
-      });
-
-      // Add click listeners to all content pages for manual flipping
-      for (let i = 1; i < pages.length; i++) { // Loop through all pages including the last cover page for flipping
-        const pageElement = pages[i];
-        pageElement.addEventListener("click", () => {
-          if (!globalClicked) return; // Only allow flipping after the cover is opened
-
-          // If it's the last page (back cover), reset the book
-          if (i === pages.length - 1) {
-            closeAndResetBook(elBook);
-          } else if (currentPageIndex === i - 1) { // Ensure user clicks on the currently active page pair
-            flipToNextPage(elBook);
-          }
-        });
-      }
-
-      window.resetBook = () => {
-        globalClicked = false;
-        currentPageIndex = 0;
-        elBook.style.setProperty("--c", 0);
-        document.querySelectorAll('.neon-typing').forEach(el => el.innerHTML = '');
-        document.querySelectorAll('.page-content').forEach(content => content.classList.remove('animate-in'));
-        console.log("Book reset completed");
-      };
-    }
-
-    const typingPages = [
-      { front: "#type1", back: "#type2", frontText: ``, backText: `` },
-      { front: "#type3", back: "#type4", frontText: ``, backText: `` },
-      { front: "#type5", back: "#type6", frontText: ``, backText: `` },
-      { front: "#type7", back: "#type8", frontText: ``, backText: `` },
-      // New pages (5 video pages) with empty text
-      { front: "#type9", back: "#type10", frontText: ``, backText: `` },
-      { front: "#type11", back: "#type12", frontText: ``, backText: `` },
-      { front: "#type13", back: "#type14", frontText: ``, backText: `` },
-      { front: "#type15", back: "#type16", frontText: ``, backText: `` },
-      { front: "#type17", back: "#type18", frontText: ``, backText: `` }
-    ];
-
-    function typeText(el, text, callback) {
-      let i = 0;
-      el.innerHTML = "";
-      function typeChar() {
-        if (i < text.length) {
-          el.innerHTML += text[i++];
-          setTimeout(typeChar, 30);
-        } else {
-          callback && callback();
+        counter-reset: page -1;
+        & a {
+          color: inherit;
         }
       }
-      // Only type if there's actual text
-      if (text.length > 0) {
-        typeChar();
-      } else {
-        callback && callback(); // Call callback immediately if no text
+
+      .front:has(img),
+      .back:has(img) {
+        padding: 0;
       }
-    }
 
-    function startTypingSequence(elBook, pageIdx) {
-      if (pageIdx >= typingPages.length) return;
-
-      const { front, back, frontText, backText } = typingPages[pageIdx];
-      const frontEl = document.querySelector(front);
-      const backEl = document.querySelector(back);
-      const frontContent = frontEl.closest('.front').querySelector('.page-content');
-      const backContent = backEl.closest('.back').querySelector('.page-content');
-
-      // Animate in content area even if no text
-      frontContent.classList.add('animate-in');
-      typeText(frontEl, frontText, () => {
-        backContent.classList.add('animate-in');
-        typeText(backEl, backText, () => {
-          // Typing for the current page pair is complete.
-        });
-      });
-    }
-
-    function flipToNextPage(elBook) {
-      if (currentPageIndex < totalContentPages - 1) {
-        currentPageIndex++;
-        elBook.style.setProperty("--c", currentPageIndex + 1); // Flip to the next page pair
-        // No typing sequence as there's no text
-      } else {
-        // Reached the last content page, now flip to the back cover.
-        // The reset will happen when the back cover itself is clicked.
-        elBook.style.setProperty("--c", totalContentPages + 1); // Flip to the back cover
+      .front img,
+      .back img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
-    }
 
-    function closeAndResetBook(elBook) {
-      let currentC = parseInt(elBook.style.getPropertyValue("--c")) || (totalContentPages + 1);
-      function closePage() {
-        if (currentC > 0) {
-          currentC--;
-          elBook.style.setProperty("--c", currentC);
-          setTimeout(closePage, 400);
-        } else {
-          setTimeout(() => {
-            window.resetBook();
-          }, 500);
+      .front::after,
+      .back::after {
+        position: absolute;
+        bottom: 1em;
+        counter-increment: page;
+        content: counter(page) ".";
+        font-size: 0.8em;
+      }
+
+      .cover::after {
+        content: "";
+      }
+
+      .front {
+        &::after {
+          right: 1em;
+        }
+        background: linear-gradient(to left, #f7f7f7 80%, #eee 100%);
+        border-radius: 0.1em 0.5em 0.5em 0.1em;
+      }
+
+      .back {
+        &::after {
+          left: 1em;
+        }
+        background-image: linear-gradient(to right, #f7f7f7 80%, #eee 100%);
+        border-radius: 0.5em 0.1em 0.1em 0.5em;
+      }
+
+      .cover {
+        background: radial-gradient(
+            circle farthest-corner at 80% 20%,
+            hsl(150 80% 20% / 0.3) 0%,
+            hsl(170 60% 10% / 0.1) 100%
+          ),
+          hsl(231, 32%, 29%) url("https://picsum.photos/id/984/800/900") 50% /
+            cover;
+        color: hsl(200 30% 98%);
+      }
+
+      /* Content specific styles for image collage */
+      .content {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: auto repeat(2, 1fr);
+        height: 100%;
+        width: 100%;
+        padding: 0.5em;
+        box-sizing: border-box;
+        gap: 0.5em;
+      }
+
+      .content__title {
+        grid-row: 1;
+        grid-column: 1/4;
+        font-family: "Cute Font", cursive;
+        font-size: 1.8em;
+        line-height: 1;
+        padding: 0.3em;
+        box-sizing: border-box;
+        color: #333;
+        text-align: center;
+      }
+
+      .content__img-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 3px solid #eee;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .content__img-wrapper:hover {
+        transform: scale(1.02);
+      }
+
+      .content__img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .content__img1 {
+        grid-row: 2;
+        grid-column: 1/3;
+      }
+
+      .content__img2 {
+        grid-row: 2;
+        grid-column: 3;
+      }
+
+      .content__img3 {
+        grid-row: 3;
+        grid-column: 1;
+      }
+
+      .content__img4 {
+        grid-row: 3;
+        grid-column: 2/4;
+      }
+
+      .content__text {
+        grid-column: 1/4;
+        padding: 0.5em;
+        font-size: 0.9em;
+        box-sizing: border-box;
+        color: #333;
+        text-align: center;
+      }
+
+      /* Navigation Controls */
+      .navigation-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        margin: 10px auto;
+        max-width: 400px;
+      }
+
+      .nav-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .nav-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+      }
+
+      .nav-button:active {
+        transform: translateY(0);
+      }
+
+      .nav-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .page-indicator {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        padding: 8px 16px;
+        border-radius: 15px;
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        min-width: 80px;
+        text-align: center;
+      }
+
+      /* Image Zoom Overlay */
+      .zoom-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        cursor: zoom-out;
+      }
+
+      .zoom-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .zoom-overlay img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        border: 5px solid #fff;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        transform: scale(0.8);
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .zoom-overlay.active img {
+        transform: scale(1);
+      }
+
+      /* Responsive adjustments */
+      @media screen and (max-width: 768px) {
+        .book {
+          width: 90vw;
+          height: 90vw * 0.7;
+          max-width: none;
+          max-height: 70vh;
+        }
+
+        .page {
+          font-size: clamp(10px, 2vmin, 14px);
+        }
+
+        .front,
+        .back {
+          padding: 1em;
+        }
+
+        .content {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto;
+          padding: 0.5em;
+          gap: 0.3em;
+        }
+
+        .content__title {
+          grid-column: 1;
+          font-size: 1.5em;
+          padding: 0.2em;
+        }
+
+        .content__img1,
+        .content__img2,
+        .content__img3,
+        .content__img4,
+        .content__text {
+          grid-column: 1;
+          grid-row: auto;
+          padding: 0.2em;
+        }
+
+        .content__img-wrapper {
+          border-width: 2px;
+        }
+
+        .navigation-controls {
+          gap: 10px;
+          padding: 15px;
+          margin: 5px auto;
+        }
+
+        .nav-button {
+          padding: 10px 16px;
+          font-size: 12px;
+          min-width: 90px;
+        }
+
+        .page-indicator {
+          padding: 6px 12px;
+          font-size: 12px;
+          min-width: 60px;
         }
       }
-      closePage();
-    }
-  </script>
-</body>
+
+      @media screen and (max-width: 480px) {
+        .flipbook-container {
+          padding: 10px;
+        }
+
+        .navigation-controls {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .nav-button {
+          width: 100%;
+          max-width: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="flipbook-container">
+        <div class="book" ref="book">
+          <!-- First Cover Page -->
+          <div class="page">
+            <div class="front cover">
+              <h1>FlipBook</h1>
+              <p>2024.<br />Coderstar</p>
+            </div>
+            <div class="back">
+              <h2>Responsive</h2>
+              <p>
+                Fully responsive CSS flip book, thanks to the
+                <code>cqmin</code> unit.
+              </p>
+            </div>
+          </div>
+
+          <!-- Dynamic Pages with Image Collages -->
+          <div class="page" v-for="(page, idx) in items" :key="idx + 1">
+            <div class="front">
+              <div class="content">
+                <div class="content__title">{{ page.title }}</div>
+                <div
+                  class="content__img-wrapper content__img1"
+                  v-if="page.img1"
+                  @click="zoomImage(page.img1)"
+                >
+                  <img :src="page.img1" />
+                </div>
+                <div
+                  class="content__img-wrapper content__img3"
+                  v-if="page.img3"
+                  @click="zoomImage(page.img3)"
+                >
+                  <img :src="page.img3" />
+                </div>
+                <div
+                  class="content__img-wrapper content__img4"
+                  v-if="page.img4"
+                  @click="zoomImage(page.img4)"
+                >
+                  <img :src="page.img4" />
+                </div>
+              </div>
+            </div>
+            <div class="back">
+              <div class="content">
+                <div
+                  class="content__img-wrapper content__img2"
+                  v-if="page.img2"
+                  @click="zoomImage(page.img2)"
+                >
+                  <img :src="page.img2" />
+                </div>
+                <div
+                  class="content__img-wrapper content__img5"
+                  v-if="page.img5"
+                  @click="zoomImage(page.img5)"
+                >
+                  <img :src="page.img5" />
+                </div>
+                <div class="content__text" v-if="page.textBack">
+                  {{ page.textBack }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Last Cover Page -->
+          <div class="page">
+            <div class="front">
+              <img src="https://picsum.photos/id/1073/600/600" alt="Img 2" />
+            </div>
+            <div class="back cover"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="navigation-controls">
+        <button 
+          class="nav-button" 
+          @click="previousPage" 
+          :disabled="currentPage === 0"
+        >
+          ← Previous
+        </button>
+        
+        <div class="page-indicator">
+          {{ currentPage + 1 }} / {{ totalPages }}
+        </div>
+        
+        <button 
+          class="nav-button" 
+          @click="nextPage" 
+          :disabled="currentPage === totalPages - 1"
+        >
+          Next →
+        </button>
+      </div>
+
+      <!-- Image Zoom Overlay -->
+      <div
+        class="zoom-overlay"
+        :class="{ 'active': zoomedImage }"
+        @click="closeZoom"
+        v-if="zoomedImage"
+      >
+        <img :src="zoomedImage" @click.stop />
+      </div>
+    </div>
+
+    <script>
+      new Vue({
+        el: "#app",
+        data() {
+          return {
+            currentPage: 0,
+            totalPages: 0,
+            items: [
+              {
+                img1: "https://picsum.photos/id/24/600/600",
+                img2: "https://picsum.photos/id/25/600/600",
+                img3: "https://picsum.photos/id/26/600/600",
+                img4: "https://picsum.photos/id/39/600/600",
+                img5: "https://picsum.photos/id/40/600/600",
+                title: "COUPLE",
+                textBack: "A lovely couple enjoying their time together.",
+              },
+              {
+                img1: "https://picsum.photos/id/27/600/600",
+                img2: "https://picsum.photos/id/28/600/600",
+                img3: "https://picsum.photos/id/29/600/600",
+                img4: "https://picsum.photos/id/41/600/600",
+                img5: "https://picsum.photos/id/42/600/600",
+                title: "CUTE",
+                textBack: "Absolutely adorable moments captured.",
+              },
+              {
+                img1: "https://picsum.photos/id/30/600/600",
+                img2: "https://picsum.photos/id/31/600/600",
+                img3: "https://picsum.photos/id/32/600/600",
+                img4: "https://picsum.photos/id/43/600/600",
+                img5: "https://picsum.photos/id/44/600/600",
+                title: "BABIES",
+                textBack: "Tiny paws and endless cuteness.",
+              },
+              {
+                img1: "https://picsum.photos/id/33/600/600",
+                img2: "https://picsum.photos/id/34/600/600",
+                img3: "https://picsum.photos/id/35/600/600",
+                img4: "https://picsum.photos/id/45/600/600",
+                img5: "https://picsum.photos/id/46/600/600",
+                title: "SLEEP",
+                textBack: "Peaceful slumber, sweet dreams.",
+              },
+              {
+                img1: "https://picsum.photos/id/36/600/600",
+                img2: "https://picsum.photos/id/37/600/600",
+                img3: "https://picsum.photos/id/38/600/600",
+                img4: "https://picsum.photos/id/47/600/600",
+                img5: "https://picsum.photos/id/48/600/600",
+                title: "HERO",
+                textBack: "Our furry heroes, always by our side.",
+              },
+            ],
+            zoomedImage: null,
+            elBook: null,
+          };
+        },
+        mounted() {
+          this.initFlipBook();
+        },
+        methods: {
+          initFlipBook() {
+            this.elBook = this.$refs.book;
+            this.elBook.style.setProperty("--c", this.currentPage);
+            
+            const pages = this.elBook.querySelectorAll(".page");
+            this.totalPages = pages.length;
+            
+            pages.forEach((page, idx) => {
+              page.style.setProperty("--i", idx);
+              page.addEventListener("click", (evt) => {
+                if (evt.target.closest(".content__img-wrapper")) return;
+                if (this.zoomedImage) return;
+
+                const curr = evt.target.closest(".back") ? idx : idx + 1;
+                this.goToPage(curr);
+              });
+            });
+          },
+          goToPage(pageIndex) {
+            if (pageIndex >= 0 && pageIndex < this.totalPages) {
+              this.currentPage = pageIndex;
+              this.elBook.style.setProperty("--c", this.currentPage);
+            }
+          },
+          nextPage() {
+            if (this.currentPage < this.totalPages - 1) {
+              this.goToPage(this.currentPage + 1);
+            }
+          },
+          previousPage() {
+            if (this.currentPage > 0) {
+              this.goToPage(this.currentPage - 1);
+            }
+          },
+          zoomImage(imageUrl) {
+            this.zoomedImage = imageUrl;
+            document.body.style.overflow = 'hidden';
+          },
+          closeZoom() {
+            this.zoomedImage = null;
+            document.body.style.overflow = 'hidden';
+          },
+        },
+      });
+    </script>
+  </body>
 </html>
