@@ -1,61 +1,628 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="album.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuetify/2.3.0-beta.6/vuetify.min.js"></script>
-    <title>My Album</title>
-  </head>
-  <body>
-    <div id="app">
-      <div class="container">
-        <div class="album" :class="{'album--open': isOpenedTop}">
-          <div
-            class="album__paper"
-            :style="{zIndex: isOpenedTop ? 0 : items.length + 1 }"
-            :class="{'open': isOpenedTop}"
-            @click="topOpen(isOpenedTop)">
-            <div
-              class="album__page front"
-              :style="{transform: `translateZ(0.${items.length + 1}px)`}">
-              <div>
-                <div class="album__top-title">Album</div>
-                <p class="txt-tcw">Coding Wizard</p>
-                <div class="cat-mark"></div>
-              </div>
-            </div>
-            <div class="album__page back" :style="{zIndex: 0}"></div>
-          </div>
-          <div
-            class="album__paper"
-            v-for="(page, idx) in items"
-            :key="idx + 1"
-            :style="{zIndex: page.isOpen ? idx + 1 : items.length + 1 - (idx + 1) }"
-            :class="{'open': page.isOpen}"
-            @click="idx + 1 === items.length ? reset() : open(idx, page.isOpen)">
-            <div
-              class="album__page front"
-              :style="{transform: `translateZ(0.${items.length + 1 - (idx + 1)}px)`}">
-              <div class="content">
-                <div class="content__title">{{ page.title }}</div>
-                <div class="content__img1">
-                  <img :src="page.img1" />
-                  <div class="content__text">{{ idx + 1 }}</div>
-                </div>
-                <div class="content__img2"><img :src="page.img2" /></div>
-                <div class="content__img3"><img :src="page.img3" /></div>
-              </div>
-            </div>
-            <div class="album__page back" :style="{zIndex: idx + 1}"></div>
-          </div>
-          <div class="album__back"></div>
-          <div class="album__bottom"></div>
-          <div class="album__shadow"></div>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coderstar</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    .page-content {
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      position: relative;
+      z-index: 3; /* Ensure content is above collage/video */
+      padding: 2em; /* Add padding to prevent content from touching edges */
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Center content vertically if any */
+      align-items: center; /* Center content horizontally if any */
+      height: 100%; /* Take full height of the page */
+      width: 100%; /* Take full width of the page */
+    }
+    .page-content.animate-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      min-height: 100dvh;
+      perspective: 1000px;
+      font-size: 1rem;
+      overflow: hidden;
+      color: hsl(180 68% 5%);
+      background-image: radial-gradient(circle farthest-corner at 50% 50%, hsl(189, 56%, 73%) 30%, hsl(150, 80%, 75%) 100%);
+    }
+
+    .book {
+      position: relative;
+      display: flex;
+      margin: auto;
+      width: 40cqmin;
+      height: 550px;
+      pointer-events: auto;
+      transform-style: preserve-3d;
+      transition: translate 1s;
+      translate: calc(min(var(--c), 1) * 50%) 0%;
+      rotate: 1 0 0 30deg;
+      counter-reset: page -1;
+    }
+
+    .neon-typing {
+      color: var(--neon-yellow);
+      text-shadow: var(--neon-shadow-yellow);
+    }
+
+    .page {
+      --thickness: 4;
+      flex: none;
+      display: flex;
+      width: 100%;
+      font-size: 1.5cqmin;
+      pointer-events: all;
+      user-select: none;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      transition:
+        transform 1s,
+        rotate 1s ease-in calc((min(var(--i), var(--c)) - max(var(--i), var(--c))) * 50ms);
+      translate: calc(var(--i) * -100%) 0px 0px;
+      transform: translateZ( calc((var(--c) - var(--i) - 0.5) * calc(var(--thickness) * .23cqmin)));
+      rotate: 0 1 0 calc(clamp(0, var(--c) - var(--i), 1) * -180deg);
+      box-shadow: 0em .5em 1em -.2em #00000020;
+      cursor: pointer; /* Indicate clickable pages */
+    }
+
+    .front,
+    .back {
+      position: relative;
+      flex: none;
+      width: 100%;
+      backface-visibility: hidden;
+      overflow: hidden;
+      background-color: #fff;
+      display: flex;
+      flex-flow: column wrap;
+      justify-content: space-between;
+      border: 1px solid #0002;
+    }
+
+    /* Video Container Styles */
+    .video-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1; /* Ensure video is behind content */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000; /* Black background for video */
+    }
+
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Cover the area, cropping if necessary */
+    }
+
+    .front::after,
+    .back::after {
+      position: absolute;
+      bottom: 1em;
+      counter-increment: page;
+      content: counter(page) ".";
+      font-size: 0.8em;
+      z-index: 4; /* Ensure page number is above content and media */
+    }
+
+    .front::after { right: 1em; }
+    .back {
+      translate: -100% 0;
+      rotate: 0 1 0 180deg;
+    }
+    .back::after { left: 1em; }
+
+    .cover {
+      background: radial-gradient(circle farthest-corner at 80% 20%, hsl(150 80% 20% / .3) 0%, hsl(170 60% 10% / .1) 100%),
+      hsl(231, 32%, 29%) url("https://raw.githubusercontent.com/CodeCr4cker/book-flip/main/img/front.jpg") 50% / cover;
+      color: hsl(200 30% 98%);
+      pointer-events: auto;
+    }
+
+    .cover::after { content: ""; } /* No page number on cover */
+
+    h1 {
+      font-size: 1.8em;
+      margin: 0.5em 0;
+    }
+
+    h2 {
+      font-size: 1.3em;
+      margin: 0.4em 0;
+    }
+
+    p {
+      font-size: 0.95em;
+      margin: 0.4em 0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        font-size: 0.9rem;
+      }
+
+      .page {
+        font-size: 1.2cqmin;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      h2 {
+        font-size: 1.1em;
+      }
+
+      p {
+        font-size: 0.85em;
+      }
+      .book {
+        height: 200px;
+      }
+    }
+
+    /* Image Management Design from album.css */
+    .content {
+      display: grid;
+      grid-template-columns: 50% 50%;
+      grid-template-rows: 100px auto;
+      height: 100%;
+      position: absolute; /* Position absolutely to layer behind page-content */
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1; /* Ensure content is behind page-content */
+      background-color: #f1f0f0; /* Default page background */
+    }
+    .content__title {
+      grid-row: 1;
+      grid-column: 1/3;
+      font-size: 100px;
+      line-height: 0.8;
+      padding: 20px;
+      box-sizing: border-box;
+      color: #333; /* Ensure title color is visible */
+    }
+    .content__img1 {
+      grid-row: 2/4;
+      grid-column: 1/2;
+      display: flex;
+      align-items: center;
+      flex-flow: column;
+      box-sizing: border-box;
+    }
+    .content__img1 img {
+      margin: auto;
+      width: 90%;
+      border: 10px solid #fff;
+      box-sizing: border-box;
+      object-fit: cover; /* Ensure images cover their area */
+    }
+    .content__img2 {
+      grid-row: 3/4;
+      grid-column: 2/4;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .content__img2 img {
+      margin: auto;
+      width: 80%;
+      border: 10px solid #fff;
+      box-sizing: border-box;
+      object-fit: cover;
+    }
+    .content__img3 {
+      grid-row: 2;
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .content__img3 img {
+      margin: auto;
+      width: 60%;
+      border: 10px solid #fff;
+      box-sizing: border-box;
+      object-fit: cover;
+    }
+    .content__text {
+      width: 100%;
+      padding: 30px;
+      font-size: 30px;
+      box-sizing: border-box;
+      color: #333; /* Ensure text color is visible */
+    }
+  </style>
+</head>
+<body>
+  <div class="book">
+    <!-- Cover Page -->
+    <div class="page">
+      <div class="front cover">
+        <!-- No images on front cover -->
+      </div>
+      <div class="back">
+        <!-- No images on back of cover -->
       </div>
     </div>
-    <script src="album.js"></script>
-  </body>
+
+    <!-- Content Page 1 (Image Management Design) -->
+    <div class="page">
+      <div class="front">
+        <div class="content">
+          <div class="content__title">COUPLE</div>
+          <div class="content__img1">
+            <img src="images/cat couple.jpg" alt="Cat Couple 1" />
+            <div class="content__text">1</div>
+          </div>
+          <div class="content__img2"><img src="images/cat couple2.jpg" alt="Cat Couple 2" /></div>
+          <div class="content__img3"><img src="images/cat couple3.jpg" alt="Cat Couple 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type1" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="content">
+          <div class="content__title">CUTE</div>
+          <div class="content__img1">
+            <img src="images/cat cute.jpg" alt="Cat Cute 1" />
+            <div class="content__text">2</div>
+          </div>
+          <div class="content__img2"><img src="images/cat cute 2.jpg" alt="Cat Cute 2" /></div>
+          <div class="content__img3"><img src="images/cat cute 3.jpg" alt="Cat Cute 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type2" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 2 (Image Management Design) -->
+    <div class="page">
+      <div class="front">
+        <div class="content">
+          <div class="content__title">BABIES</div>
+          <div class="content__img1">
+            <img src="images/cat baby2.jpg" alt="Cat Baby 1" />
+            <div class="content__text">3</div>
+          </div>
+          <div class="content__img2"><img src="images/cat baby.jpg" alt="Cat Baby 2" /></div>
+          <div class="content__img3"><img src="images/cat baby3.jpg" alt="Cat Baby 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type3" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="content">
+          <div class="content__title">SLEEP</div>
+          <div class="content__img1">
+            <img src="images/cat sleep.jpg" alt="Cat Sleep 1" />
+            <div class="content__text">4</div>
+          </div>
+          <div class="content__img2"><img src="images/cat sleep2.jpg" alt="Cat Sleep 2" /></div>
+          <div class="content__img3"><img src="images/cat sleep 3.jpg" alt="Cat Sleep 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type4" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 3 (Image Management Design) -->
+    <div class="page">
+      <div class="front">
+        <div class="content">
+          <div class="content__title">HERO</div>
+          <div class="content__img1">
+            <img src="images/CAT HERO1.jpg" alt="Cat Hero 1" />
+            <div class="content__text">5</div>
+          </div>
+          <div class="content__img2"><img src="images/cat hero2.jpg" alt="Cat Hero 2" /></div>
+          <div class="content__img3"><img src="images/cat hero3.jpg" alt="Cat Hero 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type5" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="content">
+          <div class="content__title">MORE</div>
+          <div class="content__img1">
+            <img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=More+1" alt="More Image 1" />
+            <div class="content__text">6</div>
+          </div>
+          <div class="content__img2"><img src="https://via.placeholder.com/250x350/FFA07A/FFFFFF?text=More+2" alt="More Image 2" /></div>
+          <div class="content__img3"><img src="https://via.placeholder.com/250x350/98FB98/FFFFFF?text=More+3" alt="More Image 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type6" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 4 (Image Management Design) -->
+    <div class="page">
+      <div class="front">
+        <div class="content">
+          <div class="content__title">EXTRA</div>
+          <div class="content__img1">
+            <img src="https://via.placeholder.com/250x350/ADD8E6/FFFFFF?text=Extra+1" alt="Extra Image 1" />
+            <div class="content__text">7</div>
+          </div>
+          <div class="content__img2"><img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=Extra+2" alt="Extra Image 2" /></div>
+          <div class="content__img3"><img src="https://via.placeholder.com/250x350/FFA07A/FFFFFF?text=Extra+3" alt="Extra Image 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type7" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="content">
+          <div class="content__title">LAST</div>
+          <div class="content__img1">
+            <img src="https://via.placeholder.com/250x350/98FB98/FFFFFF?text=Last+1" alt="Last Image 1" />
+            <div class="content__text">8</div>
+          </div>
+          <div class="content__img2"><img src="https://via.placeholder.com/250x350/ADD8E6/FFFFFF?text=Last+2" alt="Last Image 2" /></div>
+          <div class="content__img3"><img src="https://via.placeholder.com/250x350/FFD700/FFFFFF?text=Last+3" alt="Last Image 3" /></div>
+        </div>
+        <div class="page-content"><h2><span id="type8" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 5 (Video) -->
+    <div class="page">
+      <div class="front">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type9" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type10" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 6 (Video) -->
+    <div class="page">
+      <div class="front">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type11" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type12" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 7 (Video) -->
+    <div class="page">
+      <div class="front">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type13" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type14" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 8 (Video) -->
+    <div class="page">
+      <div class="front">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type15" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type16" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Content Page 9 (Video) -->
+    <div class="page">
+      <div class="front">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type17" class="neon-typing"></span></h2></div>
+      </div>
+      <div class="back">
+        <div class="video-container">
+          <video controls loop muted autoplay>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="page-content"><h2><span id="type18" class="neon-typing"></span></h2></div>
+      </div>
+    </div>
+
+    <!-- Back Cover Page -->
+    <div class="page">
+      <div class="front">
+        <!-- No images on front of back cover -->
+      </div>
+      <div class="back cover">
+        <!-- No images on back cover -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let globalClicked = false;
+    let currentPageIndex = 0; // Track the currently visible page pair (0-indexed)
+    const totalContentPages = 9; // Number of pages with actual content (4 image pages + 5 video pages)
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const elBook = document.querySelector(".book");
+      flipBook(elBook);
+    });
+
+    function flipBook(elBook) {
+      elBook.style.setProperty("--c", 0);
+      const pages = elBook.querySelectorAll(".page");
+      pages.forEach((page, idx) => page.style.setProperty("--i", idx));
+
+      // Add click listener to the cover page to start the book
+      const coverPage = pages[0];
+      coverPage.addEventListener("click", () => {
+        if (globalClicked) return;
+        globalClicked = true;
+        elBook.style.setProperty("--c", 1); // Open to the first content page
+        currentPageIndex = 0;
+        // No typing sequence on initial open as there's no text
+      });
+
+      // Add click listeners to all content pages for manual flipping
+      for (let i = 1; i < pages.length; i++) { // Loop through all pages including the last cover page for flipping
+        const pageElement = pages[i];
+        pageElement.addEventListener("click", () => {
+          if (!globalClicked) return; // Only allow flipping after the cover is opened
+
+          // If it's the last page (back cover), reset the book
+          if (i === pages.length - 1) {
+            closeAndResetBook(elBook);
+          } else if (currentPageIndex === i - 1) { // Ensure user clicks on the currently active page pair
+            flipToNextPage(elBook);
+          }
+        });
+      }
+
+      window.resetBook = () => {
+        globalClicked = false;
+        currentPageIndex = 0;
+        elBook.style.setProperty("--c", 0);
+        document.querySelectorAll('.neon-typing').forEach(el => el.innerHTML = '');
+        document.querySelectorAll('.page-content').forEach(content => content.classList.remove('animate-in'));
+        console.log("Book reset completed");
+      };
+    }
+
+    const typingPages = [
+      { front: "#type1", back: "#type2", frontText: ``, backText: `` },
+      { front: "#type3", back: "#type4", frontText: ``, backText: `` },
+      { front: "#type5", back: "#type6", frontText: ``, backText: `` },
+      { front: "#type7", back: "#type8", frontText: ``, backText: `` },
+      // New pages (5 video pages) with empty text
+      { front: "#type9", back: "#type10", frontText: ``, backText: `` },
+      { front: "#type11", back: "#type12", frontText: ``, backText: `` },
+      { front: "#type13", back: "#type14", frontText: ``, backText: `` },
+      { front: "#type15", back: "#type16", frontText: ``, backText: `` },
+      { front: "#type17", back: "#type18", frontText: ``, backText: `` }
+    ];
+
+    function typeText(el, text, callback) {
+      let i = 0;
+      el.innerHTML = "";
+      function typeChar() {
+        if (i < text.length) {
+          el.innerHTML += text[i++];
+          setTimeout(typeChar, 30);
+        } else {
+          callback && callback();
+        }
+      }
+      // Only type if there's actual text
+      if (text.length > 0) {
+        typeChar();
+      } else {
+        callback && callback(); // Call callback immediately if no text
+      }
+    }
+
+    function startTypingSequence(elBook, pageIdx) {
+      if (pageIdx >= typingPages.length) return;
+
+      const { front, back, frontText, backText } = typingPages[pageIdx];
+      const frontEl = document.querySelector(front);
+      const backEl = document.querySelector(back);
+      const frontContent = frontEl.closest('.front').querySelector('.page-content');
+      const backContent = backEl.closest('.back').querySelector('.page-content');
+
+      // Animate in content area even if no text
+      frontContent.classList.add('animate-in');
+      typeText(frontEl, frontText, () => {
+        backContent.classList.add('animate-in');
+        typeText(backEl, backText, () => {
+          // Typing for the current page pair is complete.
+        });
+      });
+    }
+
+    function flipToNextPage(elBook) {
+      if (currentPageIndex < totalContentPages - 1) {
+        currentPageIndex++;
+        elBook.style.setProperty("--c", currentPageIndex + 1); // Flip to the next page pair
+        // No typing sequence as there's no text
+      } else {
+        // Reached the last content page, now flip to the back cover.
+        // The reset will happen when the back cover itself is clicked.
+        elBook.style.setProperty("--c", totalContentPages + 1); // Flip to the back cover
+      }
+    }
+
+    function closeAndResetBook(elBook) {
+      let currentC = parseInt(elBook.style.getPropertyValue("--c")) || (totalContentPages + 1);
+      function closePage() {
+        if (currentC > 0) {
+          currentC--;
+          elBook.style.setProperty("--c", currentC);
+          setTimeout(closePage, 400);
+        } else {
+          setTimeout(() => {
+            window.resetBook();
+          }, 500);
+        }
+      }
+      closePage();
+    }
+  </script>
+</body>
 </html>
